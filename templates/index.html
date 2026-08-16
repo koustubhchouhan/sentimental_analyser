@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sentiment Predictor</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f4f7fb;
+        color: #1f2937;
+      }
+      .container {
+        max-width: 700px;
+        margin: 60px auto;
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      textarea {
+        width: 100%;
+        min-height: 140px;
+        padding: 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        resize: vertical;
+        font-size: 16px;
+      }
+      button {
+        margin-top: 16px;
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #2563eb;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #1d4ed8;
+      }
+      .result {
+        margin-top: 24px;
+        padding: 20px;
+        background: #eff6ff;
+        border-radius: 12px;
+        display: none;
+      }
+      .result strong {
+        font-size: 18px;
+      }
+      .sentiment-tag {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-weight: bold;
+      }
+      .positive {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .negative {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+      .neutral {
+        background: #fef3c7;
+        color: #92400e;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Review Sentiment Predictor</h1>
+
+      <textarea
+        id="reviewInput"
+        placeholder="Type your product review here..."
+      ></textarea>
+      <button id="predictBtn">Predict Sentiment</button>
+
+      <div id="resultBox" class="result">
+        <strong>Result:</strong>
+        <div id="sentimentText">-</div>
+        <div id="confidenceText">-</div>
+      </div>
+    </div>
+
+    <script>
+      const reviewInput = document.getElementById("reviewInput");
+      const predictBtn = document.getElementById("predictBtn");
+      const resultBox = document.getElementById("resultBox");
+      const sentimentText = document.getElementById("sentimentText");
+      const confidenceText = document.getElementById("confidenceText");
+
+      predictBtn.addEventListener("click", async () => {
+        const review = reviewInput.value.trim();
+
+        if (!review) {
+          alert("Please enter a review first.");
+          return;
+        }
+
+        try {
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ review }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "Prediction failed");
+          }
+
+          const sentiment = data.sentiment;
+          const confidence = data.confidence_percent;
+
+          resultBox.style.display = "block";
+          sentimentText.innerHTML = `Sentiment: <span class="sentiment-tag ${sentiment.toLowerCase()}">${sentiment}</span>`;
+          confidenceText.textContent = `Confidence: ${confidence}%`;
+        } catch (error) {
+          resultBox.style.display = "block";
+          sentimentText.textContent = "Error";
+          confidenceText.textContent = error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
